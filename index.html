@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>تسجيل بيانات عائلة النشابة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fafafa; --panel:#ffffff; --panel-2:#f5f5f7;
+  --ink:#17171a; --ink-2:#5c5c63; --ink-3:#96959c;
+  --border:#e7e7ea; --border-strong:#d6d6dc;
+  --accent:#4338ca; --accent-fill:#ece9ff;
+  --danger:#c0362c; --danger-fill:#fcebe9;
+  --shadow:0 1px 2px rgba(20,20,30,.04), 0 4px 14px rgba(20,20,30,.06);
+  --font:"Cairo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e0e10; --panel:#19191c; --panel-2:#1f1f23;
+    --ink:#f1f1f0; --ink-2:#a8a7ae; --ink-3:#717077;
+    --border:#2b2b2f; --border-strong:#3a3a40;
+    --accent:#8b7cf6; --accent-fill:#241f45;
+    --danger:#f0857a; --danger-fill:#3a1e1a;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--bg); color:var(--ink); font-family:var(--font); direction:rtl;
+}
+.wrap{ max-width:640px; margin:0 auto; padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px)); }
+h1{ font-size:20px; font-weight:800; margin:0 0 4px; }
+.sub{ font-size:13px; color:var(--ink-3); margin:0 0 20px; line-height:1.7; }
+.card{
+  background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px;
+  box-shadow:var(--shadow); margin-bottom:18px;
+}
+.card h2{ font-size:15px; font-weight:700; margin:0 0 14px; }
+.field{ margin-bottom:12px; }
+.field label{ display:block; font-size:12px; color:var(--ink-2); margin-bottom:5px; font-weight:600; }
+.field input, .field select, .field textarea{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border-strong);
+  background:var(--panel); color:var(--ink); font-family:var(--font); font-size:14px;
+}
+.field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--accent); }
+.field textarea{ resize:vertical; min-height:52px; }
+.row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.err{ color:var(--danger); font-size:12px; margin-top:4px; display:none; }
+.err.show{ display:block; }
+.btn{
+  border:1px solid var(--border-strong); background:var(--panel); color:var(--ink);
+  border-radius:11px; padding:10px 16px; font-size:14px; cursor:pointer; font-family:var(--font); font-weight:600;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.btn:hover{ background:var(--panel-2); }
+.btn:active{ transform:scale(.97); }
+.btn.primary{ background:var(--accent); color:#fff; border-color:var(--accent); width:100%; justify-content:center; padding:12px; font-size:15px; }
+.btn.danger{ background:var(--danger-fill); color:var(--danger); border-color:var(--danger-fill); }
+.list-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.list-head h2{ margin:0; }
+.count-badge{
+  font-size:12px; background:var(--accent-fill); color:var(--accent); padding:3px 10px; border-radius:20px; font-weight:700;
+}
+.person-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:11px 4px; border-bottom:1px solid var(--border);
+}
+.person-row:last-child{ border-bottom:none; }
+.person-info{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.person-name{ font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.person-meta{ font-size:11.5px; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.person-actions{ display:flex; gap:6px; flex:none; }
+.icon-sm{
+  width:30px; height:30px; border-radius:8px; border:1px solid var(--border-strong); background:var(--panel);
+  color:var(--ink-2); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px;
+}
+.icon-sm:hover{ background:var(--panel-2); }
+.empty-list{ text-align:center; color:var(--ink-3); font-size:13.5px; padding:20px 0; }
+.export-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.export-actions .btn{ flex:1; justify-content:center; }
+.hint{ font-size:12px; color:var(--ink-3); margin-top:10px; line-height:1.7; }
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0;
+  background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:20px; font-size:13.5px;
+  transition:opacity .25s, transform .25s; z-index:50; pointer-events:none; white-space:nowrap;
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>تسجيل بيانات عائلة النشابة</h1>
+  <p class="sub">سجّل بيانات كل فرد من العائلة هنا واحدًا تلو الآخر. البيانات تُحفظ تلقائيًا في هذا المتصفح، وعندما تنتهي اضغط "تنزيل الملف" في الأسفل ثم ارفعه في موقع شجرة العائلة عبر زر "استيراد".</p>
+
+  <div class="card">
+    <h2 id="formTitle">إضافة فرد جديد</h2>
+    <div class="field">
+      <label>هذا الفرد ابن/ابنة لـ (اختر الأب إن وُجد)</label>
+      <select id="fParent">
+        <option value="">لا يوجد — هذا هو جد العائلة الأول</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>الاسم * <span id="nameHint" style="font-weight:400; color:var(--ink-3);"></span></label>
+      <input type="text" id="fName" placeholder="اكتب اسمه الأول فقط، ويُكمل تلقائيًا">
+      <div class="err" id="errName">الرجاء إدخال الاسم</div>
+    </div>
+    <div class="field">
+      <label>اسم الأم (يُملأ تلقائيًا من زوجة الأب إن وُجدت)</label>
+      <input type="text" id="fMother" placeholder="اختر الأب أولًا لتعبئته تلقائيًا">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>الصفة (تُقترح تلقائيًا حسب ترتيب الأبناء)</label>
+        <input type="text" id="fRelation" placeholder="مثال: الابن الأكبر">
+      </div>
+      <div class="field">
+        <label>سنة الميلاد</label>
+        <input type="text" id="fBirth" placeholder="مثال: 1985">
+      </div>
+    </div>
+    <div class="field">
+      <label>اسم الزوج/الزوجة (اختياري)</label>
+      <input type="text" id="fSpouse" placeholder="اترك فارغًا إن لم يوجد">
+    </div>
+    <div class="field">
+      <label>ملاحظات</label>
+      <textarea id="fNotes" placeholder="أي تفاصيل إضافية…"></textarea>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn primary" id="btnAdd" style="flex:1;">إضافة إلى القائمة</button>
+      <button class="btn" id="btnCancelEdit" style="display:none;">إلغاء التعديل</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="list-head">
+      <h2>الأفراد المسجّلون</h2>
+      <span class="count-badge" id="countBadge">0</span>
+    </div>
+    <div id="personList"></div>
+    <div id="emptyList" class="empty-list">لم تُضف أي أسماء بعد</div>
+    <div class="export-actions">
+      <button class="btn primary" id="btnDownload">تنزيل الملف (لرفعه في الموقع)</button>
+      <button class="btn danger" id="btnClearAll">مسح الكل</button>
+    </div>
+    <p class="hint">الملف الناتج بصيغة JSON متوافق مباشرة مع زر "استيراد" في موقع شجرة العائلة — لا حاجة لأي تعديل عليه.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var STORAGE_KEY = 'family-entry-form-v1';
+  var people = [];
+  var editingId = null;
+
+  function uid(){ return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){ var d = JSON.parse(raw); if(Array.isArray(d)) people = d; }
+    }catch(e){}
+  }
+  function save(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(people)); }catch(e){}
+  }
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._tid);
+    showToast._tid = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+
+  var elParent = document.getElementById('fParent');
+  var elName = document.getElementById('fName');
+  var elMother = document.getElementById('fMother');
+  var elRelation = document.getElementById('fRelation');
+  var elBirth = document.getElementById('fBirth');
+  var elSpouse = document.getElementById('fSpouse');
+  var elNotes = document.getElementById('fNotes');
+  var errName = document.getElementById('errName');
+  var listEl = document.getElementById('personList');
+  var emptyEl = document.getElementById('emptyList');
+  var countEl = document.getElementById('countBadge');
+  var formTitle = document.getElementById('formTitle');
+  var btnAdd = document.getElementById('btnAdd');
+  var btnCancelEdit = document.getElementById('btnCancelEdit');
+
+  function refreshParentOptions(excludeId){
+    var current = elParent.value;
+    elParent.innerHTML = '<option value="">لا يوجد — هذا هو جد العائلة الأول</option>' +
+      people.filter(function(p){ return p.id !== excludeId; }).map(function(p){
+        return '<option value="'+p.id+'">'+escapeHtml(p.name)+'</option>';
+      }).join('');
+    if([...elParent.options].some(function(o){ return o.value === current; })) elParent.value = current;
+  }
+
+  var ORDINALS = ['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر','الحادي عشر','الثاني عشر'];
+  function ordinalWord(n){ return ORDINALS[n-1] || ('رقم ' + n); }
+
+  var nameHintEl = document.getElementById('nameHint');
+  function updateNameHint(){
+    var parentId = elParent.value;
+    if(!parentId){ nameHintEl.textContent = ''; return; }
+    var parent = people.find(function(p){ return p.id === parentId; });
+    nameHintEl.textContent = parent ? ('— سيُضاف تلقائيًا: " ' + parent.name + '"') : '';
+  }
+  function autofillMother(){
+    var parentId = elParent.value;
+    if(!parentId){
+      if(elMother.dataset.auto === '1'){ elMother.value = ''; elMother.dataset.auto = ''; }
+      return;
+    }
+    var parent = people.find(function(p){ return p.id === parentId; });
+    if(!parent) return;
+    if(!elMother.value.trim() || elMother.dataset.auto === '1'){
+      elMother.value = parent.spouseName || '';
+      elMother.dataset.auto = elMother.value ? '1' : '';
+    }
+  }
+  elMother.addEventListener('input', function(){ elMother.dataset.auto = ''; });
+  elParent.addEventListener('change', function(){ updateNameHint(); autofillMother(); });
+
+  elName.addEventListener('blur', function(){
+    var parentId = elParent.value;
+    if(!parentId) return;
+    var parent = people.find(function(p){ return p.id === parentId; });
+    if(!parent) return;
+    var val = elName.value.trim();
+    if(!val) return;
+    if(val !== parent.name && val.indexOf(parent.name) === -1){
+      elName.value = val + ' ' + parent.name;
+    }
+  });
+
+  function suggestRelation(){
+    if(editingId) return; // don't overwrite an existing person's saved relation
+    var parentId = elParent.value;
+    if(!parentId){
+      if(!elRelation.value.trim() || elRelation.dataset.auto === '1'){
+        elRelation.value = '';
+        elRelation.dataset.auto = '';
+      }
+      return;
+    }
+    var siblingCount = people.filter(function(p){ return p.parentId === parentId; }).length;
+    var suggestion = 'الابن ' + ordinalWord(siblingCount + 1);
+    // only auto-fill if the field is empty or still holds our own previous suggestion
+    if(!elRelation.value.trim() || elRelation.dataset.auto === '1'){
+      elRelation.value = suggestion;
+      elRelation.dataset.auto = '1';
+    }
+  }
+  elParent.addEventListener('change', suggestRelation);
+  elRelation.addEventListener('input', function(){ elRelation.dataset.auto = ''; });
+
+  function renderList(){
+    countEl.textContent = people.length;
+    if(!people.length){
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    var byId = {}; people.forEach(function(p){ byId[p.id] = p; });
+    listEl.innerHTML = people.map(function(p){
+      var parentName = p.parentId && byId[p.parentId] ? byId[p.parentId].name : 'جد أول';
+      var metaParts = ['تابع لـ: ' + parentName];
+      if(p.motherName) metaParts.push('الأم: ' + p.motherName);
+      if(p.relation) metaParts.push(p.relation);
+      if(p.birthYear) metaParts.push(p.birthYear);
+      return (
+        '<div class="person-row">' +
+          '<div class="person-info">' +
+            '<div class="person-name">'+escapeHtml(p.name)+'</div>' +
+            '<div class="person-meta">'+escapeHtml(metaParts.join(' · '))+'</div>' +
+          '</div>' +
+          '<div class="person-actions">' +
+            '<button class="icon-sm" data-edit="'+p.id+'" title="تعديل" aria-label="تعديل">✎</button>' +
+            '<button class="icon-sm" data-del="'+p.id+'" title="حذف" aria-label="حذف">✕</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  function resetForm(){
+    editingId = null;
+    elParent.value = ''; elName.value=''; elMother.value=''; elRelation.value=''; elBirth.value=''; elSpouse.value=''; elNotes.value='';
+    elRelation.dataset.auto = '';
+    elMother.dataset.auto = '';
+    errName.classList.remove('show');
+    formTitle.textContent = 'إضافة فرد جديد';
+    btnAdd.textContent = 'إضافة إلى القائمة';
+    btnCancelEdit.style.display = 'none';
+    refreshParentOptions(null);
+    updateNameHint();
+  }
+
+  btnAdd.addEventListener('click', function(){
+    var name = elName.value.trim();
+    if(!name){ errName.classList.add('show'); elName.focus(); return; }
+    errName.classList.remove('show');
+    if(editingId){
+      var p = people.find(function(x){ return x.id === editingId; });
+      if(p){
+        p.name = name;
+        p.parentId = elParent.value || null;
+        p.motherName = elMother.value.trim();
+        p.relation = elRelation.value.trim();
+        p.birthYear = elBirth.value.trim();
+        p.spouseName = elSpouse.value.trim();
+        p.notes = elNotes.value.trim();
+      }
+      showToast('تم تحديث البيانات');
+    } else {
+      people.push({
+        id: uid(),
+        parentId: elParent.value || null,
+        name: name,
+        motherName: elMother.value.trim(),
+        relation: elRelation.value.trim(),
+        birthYear: elBirth.value.trim(),
+        spouseName: elSpouse.value.trim(),
+        spousePhoto: null,
+        notes: elNotes.value.trim(),
+        photo: null
+      });
+      showToast('تمت الإضافة');
+    }
+    save();
+    renderList();
+    resetForm();
+  });
+
+  btnCancelEdit.addEventListener('click', resetForm);
+
+  listEl.addEventListener('click', function(e){
+    var editBtn = e.target.closest('[data-edit]');
+    if(editBtn){
+      var id = editBtn.getAttribute('data-edit');
+      var p = people.find(function(x){ return x.id === id; });
+      if(!p) return;
+      editingId = id;
+      refreshParentOptions(id);
+      elParent.value = p.parentId || '';
+      elName.value = p.name || '';
+      elMother.value = p.motherName || '';
+      elRelation.value = p.relation || '';
+      elBirth.value = p.birthYear || '';
+      elSpouse.value = p.spouseName || '';
+      elNotes.value = p.notes || '';
+      formTitle.textContent = 'تعديل بيانات: ' + p.name;
+      btnAdd.textContent = 'حفظ التعديل';
+      btnCancelEdit.style.display = 'inline-flex';
+      updateNameHint();
+      window.scrollTo({ top:0, behavior:'smooth' });
+      return;
+    }
+    var delBtn = e.target.closest('[data-del]');
+    if(delBtn){
+      var did = delBtn.getAttribute('data-del');
+      var toDelete = new Set([did]);
+      var changed = true;
+      while(changed){
+        changed = false;
+        people.forEach(function(p){
+          if(p.parentId && toDelete.has(p.parentId) && !toDelete.has(p.id)){ toDelete.add(p.id); changed = true; }
+        });
+      }
+      people = people.filter(function(p){ return !toDelete.has(p.id); });
+      if(editingId && toDelete.has(editingId)) resetForm();
+      save();
+      renderList();
+      refreshParentOptions(editingId);
+      showToast('تم الحذف');
+    }
+  });
+
+  document.getElementById('btnClearAll').addEventListener('click', function(){
+    if(!people.length) return;
+    if(!confirm('هل أنت متأكد من مسح كل الأسماء المسجّلة؟ لا يمكن التراجع.')) return;
+    people = [];
+    save();
+    renderList();
+    resetForm();
+    showToast('تم مسح كل البيانات');
+  });
+
+  document.getElementById('btnDownload').addEventListener('click', function(){
+    if(!people.length){ showToast('لا توجد بيانات لتنزيلها بعد'); return; }
+    try{
+      var payload = { members: people };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'family-tree-data.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('تم تنزيل الملف');
+    }catch(e){}
+  });
+
+  load();
+  refreshParentOptions(null);
+  renderList();
+})();
+</script>
+</body>
+</html>
